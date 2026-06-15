@@ -1,0 +1,78 @@
+<div class="page-padded">
+  <div class="page-header">
+    <a routerLink="/customer/dashboard" class="back-link">← Back</a>
+    <h2>My Bookings</h2>
+  </div>
+
+  <div *ngIf="error"   class="alert error">{{ error }}</div>
+  <div *ngIf="loading" class="loading-text">Loading your bookings...</div>
+
+  <div *ngIf="!loading && bookings.length === 0" class="empty-state">
+    No bookings yet. <a routerLink="/customer/search">Search for a ride</a>
+  </div>
+
+  <div *ngFor="let b of bookings" class="booking-card">
+    <div class="booking-header">
+      <span class="route">{{ b.source }} → {{ b.destination }}</span>
+      <span class="status-badge status-{{ b.bookingStatus?.toLowerCase() }}">
+        {{ b.bookingStatus }}
+      </span>
+    </div>
+
+    <div class="booking-details">
+      <div class="detail-row">
+        <span class="label">Seats</span>
+        <span>{{ b.no_seat_want }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Distance</span>
+        <span>{{ b.distance }} km</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Date</span>
+        <span>{{ b.offerObject?.date }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Driver</span>
+        <span>{{ b.offerObject?.car_owner?.name }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="messages[b.booking_id]" class="alert info">
+      {{ messages[b.booking_id] }}
+    </div>
+
+    <!-- Status messages -->
+    <p *ngIf="b.bookingStatus === 'PENDING'" class="status-note pending">
+      ⏳ Waiting for the owner to accept your request.
+    </p>
+    <p *ngIf="b.bookingStatus === 'REJECTED'" class="status-note rejected">
+      ✕ Your booking was rejected. Try a different ride.
+    </p>
+
+    <!-- Invoice section — only shows after ACCEPTED -->
+    <div *ngIf="b.bookingStatus === 'ACCEPTED'">
+      <div *ngIf="!invoices[b.booking_id]">
+        <button class="btn-primary" (click)="generateInvoice(b.booking_id)">
+          Generate Invoice
+        </button>
+      </div>
+
+      <div *ngIf="invoices[b.booking_id]" class="invoice-box">
+        <h4>Invoice</h4>
+        <div class="detail-row">
+          <span class="label">Amount Due</span>
+          <span class="amount">₹{{ invoices[b.booking_id].bill_generated }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status</span>
+          <span>{{ invoices[b.booking_id].status }}</span>
+        </div>
+        <button class="btn-primary"
+                (click)="pay(b.booking_id, invoices[b.booking_id].invoiceId)">
+          Pay ₹{{ invoices[b.booking_id].bill_generated }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="page-padded">
+  <div class="page-header">
+    <a routerLink="/owner/dashboard" class="back-link">← Back</a>
+    <h2>Booking Requests</h2>
+  </div>
+
+  <div *ngIf="message" class="alert info">{{ message }}</div>
+  <div *ngIf="error"   class="alert error">{{ error }}</div>
+  <div *ngIf="loading" class="loading-text">Loading bookings...</div>
+
+  <div *ngIf="!loading && bookings.length === 0" class="empty-state">
+    No booking requests yet. Share your ride details with customers!
+  </div>
+
+  <div *ngFor="let b of bookings" class="booking-card">
+    <div class="booking-header">
+      <span class="customer-name">{{ b.customerName }}</span>
+      <span class="status-badge status-{{ b.bookingStatus?.toLowerCase() }}">
+        {{ b.bookingStatus }}
+      </span>
+    </div>
+
+    <div class="booking-details">
+      <div class="detail-row">
+        <span class="label">Route</span>
+        <span>{{ b.source }} → {{ b.destination }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Seats</span>
+        <span>{{ b.no_seat_want }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Distance</span>
+        <span>{{ b.distance }} km</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Date</span>
+        <span>{{ b.offerObject?.date }}</span>
+      </div>
+    </div>
+
+    <div class="booking-actions" *ngIf="b.bookingStatus === 'PENDING'">
+      <button class="btn-accept" (click)="accept(b.booking_id)">✓ Accept</button>
+      <button class="btn-reject" (click)="reject(b.booking_id)">✕ Reject</button>
+    </div>
+  </div>
+</div>

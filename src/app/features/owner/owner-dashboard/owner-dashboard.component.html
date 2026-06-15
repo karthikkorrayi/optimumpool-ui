@@ -1,0 +1,20 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>Owner Dashboard</h1>
+    <button class="btn-outline" (click)="authService.logout()">Logout</button>
+  </div>
+
+  <div class="card-grid">
+    <a routerLink="/owner/create-ride" class="menu-card">
+      <div class="menu-icon">🚗</div>
+      <h3>Create Ride Offer</h3>
+      <p>Add a new ride with your car details and route</p>
+    </a>
+
+    <a routerLink="/owner/booking-requests" class="menu-card">
+      <div class="menu-icon">📋</div>
+      <h3>Booking Requests</h3>
+      <p>View, accept or reject customer booking requests</p>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+<div class="page-padded">
+  <div class="page-header">
+    <a routerLink="/customer/dashboard" class="back-link">← Back</a>
+    <h2>Search Rides</h2>
+  </div>
+
+  <div class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label>From</label>
+        <input type="text" [(ngModel)]="from" placeholder="e.g. Bengaluru" />
+      </div>
+      <div class="form-group">
+        <label>To</label>
+        <input type="text" [(ngModel)]="to" placeholder="e.g. Chennai" />
+      </div>
+      <div class="form-group align-end">
+        <button class="btn-primary" (click)="search()" [disabled]="loading || !from || !to">
+          {{ loading ? 'Searching...' : 'Search' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert error">{{ error }}</div>
+  <div *ngIf="bookMessage" class="alert success">{{ bookMessage }}</div>
+
+  <div *ngIf="searched && rides.length === 0" class="empty-state">
+    No rides found for {{ from }} → {{ to }}. Try different cities.
+  </div>
+
+  <div *ngFor="let ride of rides" class="ride-card">
+    <div class="ride-header">
+      <span class="route">{{ ride.wayPoint?.join(' → ') }}</span>
+      <span class="date">{{ ride.date }}</span>
+    </div>
+
+    <div class="ride-details">
+      <div class="detail-row">
+        <span class="label">Car</span>
+        <span>{{ ride.car_info?.model }} ({{ ride.car_info?.carNum }})</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Driver</span>
+        <span>{{ ride.car_owner?.name }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Available seats</span>
+        <span>{{ ride.car_info?.avl_seats }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Rate</span>
+        <span>₹{{ ride.charge_per_km }}/km</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Departs</span>
+        <span>{{ ride.time }}:00</span>
+      </div>
+    </div>
+
+    <!-- Inline booking form — appears when you click Book -->
+    <div *ngIf="bookingRideId === ride.offer_id" class="booking-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Seats needed</label>
+          <input type="number" [(ngModel)]="seatsWanted" min="1"
+                 [max]="ride.car_info?.avl_seats" />
+        </div>
+      </div>
+      <div class="button-row">
+        <button class="btn-primary" (click)="confirmBooking(ride.offer_id)"
+                [disabled]="bookLoading">
+          {{ bookLoading ? 'Booking...' : 'Confirm Booking' }}
+        </button>
+        <button class="btn-outline" (click)="cancelBooking()">Cancel</button>
+      </div>
+    </div>
+
+    <button *ngIf="bookingRideId !== ride.offer_id"
+            class="btn-primary"
+            (click)="startBooking(ride.offer_id)"
+            [disabled]="ride.car_info?.avl_seats === 0">
+      {{ ride.car_info?.avl_seats === 0 ? 'Fully Booked' : 'Book Seat' }}
+    </button>
+  </div>
+</div>

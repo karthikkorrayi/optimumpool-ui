@@ -1,0 +1,90 @@
+<div class="page-padded">
+  <div class="page-header">
+    <a routerLink="/owner/dashboard" class="back-link">← Back</a>
+    <h2>Create Ride Offer</h2>
+  </div>
+
+  <div *ngIf="error"   class="alert error">{{ error }}</div>
+  <div *ngIf="success" class="alert success">{{ success }}</div>
+
+  <div class="card">
+    <h3>Your Details</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" [(ngModel)]="ownerName" placeholder="Full name" />
+      </div>
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" [(ngModel)]="ownerContact" placeholder="Mobile number" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Car Details</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Car Number</label>
+        <input type="text" [(ngModel)]="carNum" placeholder="e.g. KA01AB1234" />
+      </div>
+      <div class="form-group">
+        <label>Car Model</label>
+        <input type="text" [(ngModel)]="carModel" placeholder="e.g. Maruti Swift" />
+      </div>
+      <div class="form-group">
+        <label>Total Seats</label>
+        <input type="number" [(ngModel)]="totalSeats" min="1" />
+      </div>
+      <div class="form-group">
+        <label>Available Seats</label>
+        <input type="number" [(ngModel)]="availSeats" min="1" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Route & Waypoints</h3>
+    <p class="hint">
+      Add stops in order. Distance is cumulative from the first stop (km from start).
+      Example: Bengaluru=0, Hosur=40, Chennai=350
+    </p>
+
+    <div *ngFor="let wp of wayPoints; let i = index; trackBy: trackByIndex" class="waypoint-row">
+      <span class="waypoint-label">Stop {{ i + 1 }}</span>
+      <div class="form-group inline">
+        <input type="text" [(ngModel)]="wayPoints[i]" placeholder="City name" />
+      </div>
+      <div class="form-group inline">
+        <input type="number" [(ngModel)]="distances[i]"
+               placeholder="km from start" [disabled]="i === 0" />
+      </div>
+      <button class="btn-remove" (click)="removeWaypoint(i)"
+              *ngIf="wayPoints.length > 2">✕</button>
+    </div>
+
+    <button class="btn-outline" (click)="addWaypoint()">+ Add Stop</button>
+  </div>
+
+  <div class="card">
+    <h3>Ride Details</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" [(ngModel)]="date" />
+      </div>
+      <div class="form-group">
+        <label>Departure Hour (24hr)</label>
+        <input type="number" [(ngModel)]="time" min="0" max="23" />
+      </div>
+      <div class="form-group">
+        <label>Charge per km (₹)</label>
+        <input type="number" [(ngModel)]="chargePerKm" min="1" />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" (click)="submit()" [disabled]="loading">
+    {{ loading ? 'Creating...' : 'Create Ride Offer' }}
+  </button>
+</div>
