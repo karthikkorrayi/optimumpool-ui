@@ -4,14 +4,16 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OfferService {
-
   private base = environment.offerApi;
 
   constructor(private http: HttpClient) {}
 
   // Owner creates a new ride offer
   createRide(rideData: any) {
-    return this.http.post(`${this.base}/offerride`, rideData);
+    return this.http.post(`${this.base}/offerride`, rideData, {
+      observe: 'response',
+      responseType: 'text',
+    });
   }
 
   // Get all rides AND trigger RabbitMQ sync to BookRide

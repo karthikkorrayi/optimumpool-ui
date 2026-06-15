@@ -1,26 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs';
 import { BookingService } from '../../../core/services/booking.service';
 
 @Component({
   selector: 'app-my-bookings',
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
-  templateUrl: './my-bookings.component.html'
+  templateUrl: './my-bookings.component.html',
 })
 export class MyBookingsComponent implements OnInit {
-
   bookings: any[] = [];
-  loading  = true;
-  error    = '';
+  loading = true;
+  error = '';
 
-  invoices:  { [bookingId: string]: any }    = {};
-  messages:  { [bookingId: string]: string } = {};
+  invoices: { [bookingId: string]: any } = {};
+  messages: { [bookingId: string]: string } = {};
   invErrors: { [bookingId: string]: string } = {};
 
-  constructor(private bookingService: BookingService) {}
+  constructor(
+    private bookingService: BookingService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.load();
@@ -28,24 +31,32 @@ export class MyBookingsComponent implements OnInit {
 
   load() {
     this.loading = true;
-    this.error   = '';
-    this.bookingService.getMyBookings().subscribe({
-      next: (data) => {
-        this.bookings = data;
-        this.loading  = false;
-      },
-      error: (err) => {
-        this.error   = err?.status === 401
-          ? 'Session expired. Please login again.'
-          : 'Could not load bookings. Is BookRide service running?';
-        this.loading = false;
-      }
-    });
+    this.error = '';
+    this.bookingService
+      .getMyBookings()
+      .pipe(
+        timeout(10000),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.bookings = data;
+        },
+        error: (err) => {
+          this.error =
+            err?.status === 401
+              ? 'Session expired. Please login again.'
+              : 'Could not load bookings. Is BookRide service running?';
+        },
+      });
   }
 
   generateInvoice(bookingId: string) {
     this.invErrors[bookingId] = '';
-    this.messages[bookingId]  = '';
+    this.messages[bookingId] = '';
 
     this.bookingService.generateInvoice(bookingId).subscribe({
       next: (invoice: any) => {
@@ -53,15 +64,14 @@ export class MyBookingsComponent implements OnInit {
       },
       error: (err) => {
         const msg = err?.error;
-        this.invErrors[bookingId] = typeof msg === 'string'
-          ? msg
-          : 'Could not generate invoice. Is the booking accepted?';
-      }
+        this.invErrors[bookingId] =
+          typeof msg === 'string' ? msg : 'Could not generate invoice. Is the booking accepted?';
+      },
     });
   }
 
   pay(bookingId: string, invoiceId: string, amount: number) {
-    this.messages[bookingId]  = '';
+    this.messages[bookingId] = '';
     this.invErrors[bookingId] = '';
 
     this.bookingService.payInvoice(invoiceId, amount).subscribe({
@@ -72,7 +82,7 @@ export class MyBookingsComponent implements OnInit {
       },
       error: (err) => {
         this.invErrors[bookingId] = 'Payment failed: ' + (err?.error || 'Unknown error');
-      }
+      },
     });
   }
 }

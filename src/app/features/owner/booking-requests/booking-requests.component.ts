@@ -1,22 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { finalize, timeout } from 'rxjs';
 import { BookingService } from '../../../core/services/booking.service';
 
 @Component({
   selector: 'app-booking-requests',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './booking-requests.component.html'
+  templateUrl: './booking-requests.component.html',
 })
 export class BookingRequestsComponent implements OnInit {
-
   bookings: any[] = [];
-  loading  = true;
-  error    = '';
-  message  = '';
+  loading = true;
+  error = '';
+  message = '';
 
-  constructor(private bookingService: BookingService) {}
+  constructor(
+    private bookingService: BookingService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.loadBookings();
@@ -24,17 +27,26 @@ export class BookingRequestsComponent implements OnInit {
 
   loadBookings() {
     this.loading = true;
-    this.error   = '';
-    this.bookingService.getAllBookingsForOwner().subscribe({
-      next: (data) => {
-        this.bookings = data;
-        this.loading  = false;
-      },
-      error: (err) => {
-        this.error   = 'Failed to load bookings: ' + (err?.status === 401 ? 'Session expired, please login again.' : 'Server error.');
-        this.loading = false;
-      }
-    });
+    this.error = '';
+    this.bookingService
+      .getAllBookingsForOwner()
+      .pipe(
+        timeout(10000),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.bookings = data;
+        },
+        error: (err) => {
+          this.error =
+            'Failed to load bookings: ' +
+            (err?.status === 401 ? 'Session expired, please login again.' : 'Server error.');
+        },
+      });
   }
 
   accept(bookingId: string) {
@@ -46,7 +58,7 @@ export class BookingRequestsComponent implements OnInit {
       },
       error: (err) => {
         this.message = '✕ ' + (err?.error?.message || err?.error || 'Could not accept booking.');
-      }
+      },
     });
   }
 
@@ -59,7 +71,7 @@ export class BookingRequestsComponent implements OnInit {
       },
       error: (err) => {
         this.message = '✕ ' + (err?.error?.message || err?.error || 'Could not reject booking.');
-      }
+      },
     });
   }
 }

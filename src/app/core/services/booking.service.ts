@@ -4,7 +4,6 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
-
   private base = environment.bookingApi;
 
   constructor(private http: HttpClient) {}
@@ -15,12 +14,20 @@ export class BookingService {
     return this.http.get<any[]>(`${this.base}/bookrides`);
   }
 
+  private routeSegment(value: string) {
+    return encodeURIComponent(value.trim());
+  }
+
   filterRides(from: string, to: string) {
-    return this.http.get<any[]>(`${this.base}/bookrides/filter/${from}/${to}`);
+    return this.http.get<any[]>(
+      `${this.base}/bookrides/filter/${this.routeSegment(from)}/${this.routeSegment(to)}`,
+    );
   }
 
   getFareDetails(from: string, to: string) {
-    return this.http.get<any[]>(`${this.base}/rides/details/${from}/${to}`);
+    return this.http.get<any[]>(
+      `${this.base}/rides/details/${this.routeSegment(from)}/${this.routeSegment(to)}`,
+    );
   }
 
   // ─── Booking ──────────────────────────────────────────────────
