@@ -16,10 +16,9 @@ export class MyBookingsComponent implements OnInit {
   loading  = true;
   error    = '';
 
-  // Invoice state per booking
-  invoices: { [bookingId: string]: any } = {};
-  payAmount: { [invoiceId: string]: number } = {};
-  messages: { [bookingId: string]: string } = {};
+  invoices:  { [bookingId: string]: any }    = {};
+  messages:  { [bookingId: string]: string } = {};
+  invErrors: { [bookingId: string]: string } = {};
 
   constructor(private bookingService: BookingService) {}
 
@@ -29,34 +28,50 @@ export class MyBookingsComponent implements OnInit {
 
   load() {
     this.loading = true;
+    this.error   = '';
     this.bookingService.getMyBookings().subscribe({
-      next: (data) => { this.bookings = data; this.loading = false; },
-      error: () => { this.error = 'Could not load bookings.'; this.loading = false; }
-    });
-  }
-
-  generateInvoice(bookingId: string) {
-    this.messages[bookingId] = '';
-    this.bookingService.generateInvoice(bookingId).subscribe({
-      next: (invoice: any) => {
-        this.invoices[bookingId]           = invoice;
-        this.payAmount[invoice.invoiceId]  = invoice.bill_generated;
+      next: (data) => {
+        this.bookings = data;
+        this.loading  = false;
       },
       error: (err) => {
-        this.messages[bookingId] = err.error || 'Invoice error. Is booking accepted?';
+        this.error   = err?.status === 401
+          ? 'Session expired. Please login again.'
+          : 'Could not load bookings. Is BookRide service running?';
+        this.loading = false;
       }
     });
   }
 
-  pay(bookingId: string, invoiceId: string) {
-    const amount = this.payAmount[invoiceId];
+  generateInvoice(bookingId: string) {
+    this.invErrors[bookingId] = '';
+    this.messages[bookingId]  = '';
+
+    this.bookingService.generateInvoice(bookingId).subscribe({
+      next: (invoice: any) => {
+        this.invoices[bookingId] = invoice;
+      },
+      error: (err) => {
+        const msg = err?.error;
+        this.invErrors[bookingId] = typeof msg === 'string'
+          ? msg
+          : 'Could not generate invoice. Is the booking accepted?';
+      }
+    });
+  }
+
+  pay(bookingId: string, invoiceId: string, amount: number) {
+    this.messages[bookingId]  = '';
+    this.invErrors[bookingId] = '';
+
     this.bookingService.payInvoice(invoiceId, amount).subscribe({
       next: (res: any) => {
-        this.messages[bookingId] = res;
-        this.load();   // refresh the list
+        this.messages[bookingId] = typeof res === 'string' ? res : 'Payment successful!';
+        delete this.invoices[bookingId];
+        this.load();
       },
-      error: () => {
-        this.messages[bookingId] = 'Payment failed.';
+      error: (err) => {
+        this.invErrors[bookingId] = 'Payment failed: ' + (err?.error || 'Unknown error');
       }
     });
   }

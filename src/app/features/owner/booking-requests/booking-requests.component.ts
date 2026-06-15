@@ -24,13 +24,14 @@ export class BookingRequestsComponent implements OnInit {
 
   loadBookings() {
     this.loading = true;
+    this.error   = '';
     this.bookingService.getAllBookingsForOwner().subscribe({
       next: (data) => {
         this.bookings = data;
         this.loading  = false;
       },
-      error: () => {
-        this.error   = 'Failed to load bookings.';
+      error: (err) => {
+        this.error   = 'Failed to load bookings: ' + (err?.status === 401 ? 'Session expired, please login again.' : 'Server error.');
         this.loading = false;
       }
     });
@@ -40,11 +41,11 @@ export class BookingRequestsComponent implements OnInit {
     this.message = '';
     this.bookingService.acceptBooking(bookingId).subscribe({
       next: () => {
-        this.message = 'Booking accepted.';
-        this.loadBookings();   // refresh
+        this.message = '✓ Booking accepted.';
+        this.loadBookings();
       },
       error: (err) => {
-        this.message = 'Error: ' + (err.error?.message || 'Could not accept.');
+        this.message = '✕ ' + (err?.error?.message || err?.error || 'Could not accept booking.');
       }
     });
   }
@@ -57,7 +58,7 @@ export class BookingRequestsComponent implements OnInit {
         this.loadBookings();
       },
       error: (err) => {
-        this.message = 'Error: ' + (err.error?.message || 'Could not reject.');
+        this.message = '✕ ' + (err?.error?.message || err?.error || 'Could not reject booking.');
       }
     });
   }

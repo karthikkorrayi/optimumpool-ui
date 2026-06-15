@@ -14,7 +14,7 @@ export class RegisterComponent {
 
   username = '';
   password = '';
-  role     = 'CUSTOMER';   // default
+  role     = 'CUSTOMER';
   phone    = 0;
   error    = '';
   success  = '';
@@ -23,6 +23,15 @@ export class RegisterComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   register() {
+    if (!this.username.trim() || !this.password.trim()) {
+      this.error = 'Username and password are required.';
+      return;
+    }
+    if (this.phone <= 0) {
+      this.error = 'Please enter a valid phone number.';
+      return;
+    }
+
     this.error   = '';
     this.success = '';
     this.loading = true;
@@ -30,15 +39,16 @@ export class RegisterComponent {
     this.authService.register({
       username: this.username,
       password: this.password,
-      role: this.role,
-      phone: this.phone
+      role:     this.role,
+      phone:    this.phone
     }).subscribe({
       next: () => {
         this.success = 'Account created! Redirecting to login...';
+        this.loading = false;
         setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
-        this.error   = err.status === 409
+        this.error = err.status === 409
           ? 'Username already taken. Try another.'
           : 'Registration failed. Please try again.';
         this.loading = false;

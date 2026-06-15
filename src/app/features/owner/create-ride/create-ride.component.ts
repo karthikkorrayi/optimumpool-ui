@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { OfferService } from '../../../core/services/offer.service';
-import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-create-ride',
@@ -85,18 +84,18 @@ export class CreateRideComponent {
       charge_per_km: this.chargePerKm
     };
 
-    this.offerService.createRide(rideData)
-      .pipe(finalize(() => { this.loading = false; }))
-      .subscribe({
-        next: (_res) => {
-          this.success = '✓ Ride offer created successfully!';
-          this.resetForm();
-        },
-        error: (err) => {
-          console.error('Create ride failed:', err);
-          this.error = 'Failed to create ride: ' + (err?.message || 'unknown error');
-        }
-      });
+    this.offerService.createRide(rideData).subscribe({
+      next: (_res) => {
+        this.success = '✓ Ride offer created successfully!';
+        this.loading = false;
+        this.resetForm();
+      },
+      error: (err) => {
+        console.error('Create ride error:', err);
+        this.error   = 'Failed to create ride: ' + (err?.error || err?.message || 'server error');
+        this.loading = false;
+      }
+    });
   }
 
   private resetForm() {

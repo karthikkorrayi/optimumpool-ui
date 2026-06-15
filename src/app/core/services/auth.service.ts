@@ -18,27 +18,24 @@ export class AuthService {
     return this.http.post<{ token: string; role: string }>(`${this.base}/login`, credentials);
   }
 
-  // Save token and role to localStorage after login
   saveSession(token: string, role: string) {
     localStorage.setItem('token', token);
-    localStorage.setItem('role', role);
+    localStorage.setItem('role',  role);
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    localStorage.clear();
     this.router.navigate(['/login']);
   }
 
-  getRole(): string {
-    return localStorage.getItem('role') || '';
-  }
-
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
-  }
+  getRole(): string     { return localStorage.getItem('role')  || ''; }
+  isLoggedIn(): boolean { return !!localStorage.getItem('token'); }
 
   getProfile() {
-    return this.http.get(`${this.base}/profile`);
+    return this.http.get<any>(`${this.base}/profile`);
+  }
+
+  updateProfile(data: { phone?: number; password?: string }) {
+    return this.http.put(`${this.base}/profile/update`, data);
   }
 }

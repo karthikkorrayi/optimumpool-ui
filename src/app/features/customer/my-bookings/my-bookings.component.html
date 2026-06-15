@@ -2,13 +2,14 @@
   <div class="page-header">
     <a routerLink="/customer/dashboard" class="back-link">← Back</a>
     <h2>My Bookings</h2>
+    <button class="btn-outline" (click)="load()" style="margin-left:auto">↻ Refresh</button>
   </div>
 
   <div *ngIf="error"   class="alert error">{{ error }}</div>
   <div *ngIf="loading" class="loading-text">Loading your bookings...</div>
 
   <div *ngIf="!loading && bookings.length === 0" class="empty-state">
-    No bookings yet. <a routerLink="/customer/search">Search for a ride</a>
+    No bookings yet. <a routerLink="/customer/search">Search for a ride →</a>
   </div>
 
   <div *ngFor="let b of bookings" class="booking-card">
@@ -21,7 +22,7 @@
 
     <div class="booking-details">
       <div class="detail-row">
-        <span class="label">Seats</span>
+        <span class="label">Seats booked</span>
         <span>{{ b.no_seat_want }}</span>
       </div>
       <div class="detail-row">
@@ -29,29 +30,39 @@
         <span>{{ b.distance }} km</span>
       </div>
       <div class="detail-row">
-        <span class="label">Date</span>
+        <span class="label">Journey date</span>
         <span>{{ b.offerObject?.date }}</span>
       </div>
       <div class="detail-row">
         <span class="label">Driver</span>
-        <span>{{ b.offerObject?.car_owner?.name }}</span>
+        <span>{{ b.offerObject?.car_owner?.name || b.offerObject?.car_owner?.username }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Car</span>
+        <span>{{ b.offerObject?.car_info?.model }} ({{ b.offerObject?.car_info?.carNum }})</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Rate</span>
+        <span>₹{{ b.offerObject?.charge_per_km }}/km</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Est. fare</span>
+        <span>₹{{ b.distance * b.no_seat_want * b.offerObject?.charge_per_km }}</span>
       </div>
     </div>
 
-    <div *ngIf="messages[b.booking_id]" class="alert info">
-      {{ messages[b.booking_id] }}
-    </div>
-
-    <!-- Status messages -->
     <p *ngIf="b.bookingStatus === 'PENDING'" class="status-note pending">
       ⏳ Waiting for the owner to accept your request.
     </p>
     <p *ngIf="b.bookingStatus === 'REJECTED'" class="status-note rejected">
-      ✕ Your booking was rejected. Try a different ride.
+      ✕ Your booking was rejected. Try booking a different ride.
     </p>
 
-    <!-- Invoice section — only shows after ACCEPTED -->
+    <div *ngIf="messages[b.booking_id]"  class="alert success">{{ messages[b.booking_id] }}</div>
+    <div *ngIf="invErrors[b.booking_id]" class="alert error">{{ invErrors[b.booking_id] }}</div>
+
     <div *ngIf="b.bookingStatus === 'ACCEPTED'">
+
       <div *ngIf="!invoices[b.booking_id]">
         <button class="btn-primary" (click)="generateInvoice(b.booking_id)">
           Generate Invoice
@@ -59,7 +70,7 @@
       </div>
 
       <div *ngIf="invoices[b.booking_id]" class="invoice-box">
-        <h4>Invoice</h4>
+        <h4>🧾 Invoice</h4>
         <div class="detail-row">
           <span class="label">Amount Due</span>
           <span class="amount">₹{{ invoices[b.booking_id].bill_generated }}</span>
@@ -68,8 +79,8 @@
           <span class="label">Status</span>
           <span>{{ invoices[b.booking_id].status }}</span>
         </div>
-        <button class="btn-primary"
-                (click)="pay(b.booking_id, invoices[b.booking_id].invoiceId)">
+        <button class="btn-primary" style="margin-top:12px"
+                (click)="pay(b.booking_id, invoices[b.booking_id].invoiceId, invoices[b.booking_id].bill_generated)">
           Pay ₹{{ invoices[b.booking_id].bill_generated }}
         </button>
       </div>

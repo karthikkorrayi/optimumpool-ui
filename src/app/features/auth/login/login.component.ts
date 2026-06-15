@@ -20,6 +20,10 @@ export class LoginComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   login() {
+    if (!this.username.trim() || !this.password.trim()) {
+      this.error = 'Please enter username and password.';
+      return;
+    }
     this.error   = '';
     this.loading = true;
 
@@ -27,7 +31,6 @@ export class LoginComponent {
       .subscribe({
         next: (res) => {
           this.authService.saveSession(res.token, res.role);
-          // Redirect based on role
           if (res.role === 'OWNER') {
             this.router.navigate(['/owner/dashboard']);
           } else {

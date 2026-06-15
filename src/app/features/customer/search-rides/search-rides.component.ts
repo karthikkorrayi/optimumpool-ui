@@ -13,17 +13,17 @@ import { OfferService } from '../../../core/services/offer.service';
 })
 export class SearchRidesComponent {
 
-  from  = '';
-  to    = '';
+  from     = '';
+  to       = '';
   rides: any[] = [];
   searched = false;
   loading  = false;
   error    = '';
 
-  // Booking form state
   bookingRideId = '';
   seatsWanted   = 1;
   bookMessage   = '';
+  bookError     = '';
   bookLoading   = false;
 
   constructor(
@@ -31,31 +31,50 @@ export class SearchRidesComponent {
     private offerService: OfferService
   ) {}
 
-  // First sync rides from OfferRide, then search
   search() {
+    if (!this.from.trim() || !this.to.trim()) {
+      this.error = 'Please enter both From and To cities.';
+      return;
+    }
+
     this.error    = '';
     this.rides    = [];
     this.searched = false;
     this.loading  = true;
+    this.bookingRideId = '';
+    this.bookMessage   = '';
+    this.bookError     = '';
 
-    // Trigger RabbitMQ sync, then search
+    // Sync rides from OfferRide → BookRide via RabbitMQ, then filter
     this.offerService.getAllRides().subscribe({
       next: () => {
-        this.bookingService.filterRides(this.from, this.to).subscribe({
+        this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
+          next: (data) => {
+            this.rides    = data;
+            this.searched = true;
+            this.loading  = false;
+          },
+          error: (err) => {
+            this.error   = err?.status === 401
+              ? 'Session expired. Please login again.'
+              : 'Search failed. Try again.';
+            this.loading = false;
+          }
+        });
+      },
+      error: () => {
+        // OfferRide sync failed — try searching BookRide directly with what it has
+        this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
           next: (data) => {
             this.rides    = data;
             this.searched = true;
             this.loading  = false;
           },
           error: () => {
-            this.error   = 'Search failed. Try again.';
+            this.error   = 'Could not connect to services. Are all three backend services running?';
             this.loading = false;
           }
         });
-      },
-      error: () => {
-        this.error   = 'Could not sync rides. Is OfferRide service running?';
-        this.loading = false;
       }
     });
   }
@@ -63,23 +82,29 @@ export class SearchRidesComponent {
   startBooking(rideId: string) {
     this.bookingRideId = rideId;
     this.bookMessage   = '';
+    this.bookError     = '';
     this.seatsWanted   = 1;
   }
 
   confirmBooking(rideId: string) {
     this.bookMessage = '';
+    this.bookError   = '';
     this.bookLoading = true;
 
-    this.bookingService.bookRide(rideId, this.seatsWanted, this.from, this.to)
+    this.bookingService.bookRide(rideId, this.seatsWanted, this.from.trim(), this.to.trim())
       .subscribe({
         next: (res: any) => {
-          this.bookMessage   = `Booked! Your booking ID is ${res.booking_id}. Waiting for owner to accept.`;
+          this.bookMessage   = `✓ Booked! ID: ${res.booking_id}. Waiting for owner to accept.`;
           this.bookLoading   = false;
           this.bookingRideId = '';
+          // Refresh ride list to show updated seat count
+          this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
+            next: (data) => this.rides = data
+          });
         },
         error: (err) => {
-          this.bookMessage = 'Booking failed: ' + (err.error || 'Unknown error');
-          this.bookLoading  = false;
+          this.bookError   = 'Booking failed: ' + (err?.error || 'Unknown error');
+          this.bookLoading = false;
         }
       });
   }
@@ -87,5 +112,6 @@ export class SearchRidesComponent {
   cancelBooking() {
     this.bookingRideId = '';
     this.bookMessage   = '';
+    this.bookError     = '';
   }
 }
