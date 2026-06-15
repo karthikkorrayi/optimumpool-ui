@@ -320,3 +320,15 @@ a:hover { text-decoration: underline; }
   padding: 32px;
   color: #9ca3af;
 }
+
+.optional {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 6px;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
