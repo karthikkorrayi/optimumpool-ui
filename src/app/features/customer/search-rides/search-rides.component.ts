@@ -48,7 +48,7 @@ export class SearchRidesComponent {
     // Sync rides from OfferRide → BookRide via RabbitMQ, then filter
     this.offerService.getAllRides().subscribe({
       next: () => {
-        this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
+          this.bookingService.filterRides(this.from.trim().toLowerCase(), this.to.trim().toLowerCase()).subscribe({
           next: (data) => {
             this.rides    = data;
             this.searched = true;
@@ -64,7 +64,7 @@ export class SearchRidesComponent {
       },
       error: () => {
         // OfferRide sync failed — try searching BookRide directly with what it has
-        this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
+          this.bookingService.filterRides(this.from.trim().toLowerCase(), this.to.trim().toLowerCase()).subscribe({
           next: (data) => {
             this.rides    = data;
             this.searched = true;
@@ -91,14 +91,14 @@ export class SearchRidesComponent {
     this.bookError   = '';
     this.bookLoading = true;
 
-    this.bookingService.bookRide(rideId, this.seatsWanted, this.from.trim(), this.to.trim())
+      this.bookingService.bookRide(rideId, this.seatsWanted, this.from.trim().toLowerCase(), this.to.trim().toLowerCase())
       .subscribe({
         next: (res: any) => {
           this.bookMessage   = `✓ Booked! ID: ${res.booking_id}. Waiting for owner to accept.`;
           this.bookLoading   = false;
           this.bookingRideId = '';
           // Refresh ride list to show updated seat count
-          this.bookingService.filterRides(this.from.trim(), this.to.trim()).subscribe({
+          this.bookingService.filterRides(this.from.trim().toLowerCase(), this.to.trim().toLowerCase()).subscribe({
             next: (data) => this.rides = data
           });
         },
