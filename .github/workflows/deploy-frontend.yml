@@ -55,5 +55,7 @@ jobs:
           app_location: "/"              # source code root
           output_location: "dist/optimumpool-ui/browser"  # ng build output
 
+          skip_app_build: true
+
           # staticwebapp.config.json is picked up automatically from src/
           config_file_location: "src/"
