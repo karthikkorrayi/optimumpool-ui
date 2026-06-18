@@ -58,4 +58,4 @@ jobs:
           skip_app_build: true
 
           # staticwebapp.config.json is picked up automatically from src/
-          config_file_location: "src/"
+          #config_file_location: "src/"
