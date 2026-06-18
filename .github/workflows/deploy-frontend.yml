@@ -52,10 +52,11 @@ jobs:
           action: "upload"
 
           # Where your built Angular files are
-          app_location: "/"              # source code root
-          output_location: "dist/optimumpool-ui/browser"  # ng build output
+          #app_location: "/"              # source code root
+          app_location: "dist/optimumpool-ui/browser"  # ng build output
 
           skip_app_build: true
+          output_location: ""
 
           # staticwebapp.config.json is picked up automatically from src/
           #config_file_location: "src/"
