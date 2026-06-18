@@ -1,0 +1,31 @@
+{
+  "routes": [
+    {
+      "route": "/api/auth/*",
+      "rewrite": "https://optimumpool-app.southindia.azurecontainer.io:8020/{remaining}"
+    },
+    {
+      "route": "/api/offer/*",
+      "rewrite": "https://optimumpool-app.southindia.azurecontainer.io:8086/{remaining}"
+    },
+    {
+      "route": "/api/booking/*",
+      "rewrite": "https://optimumpool-app.southindia.azurecontainer.io:8084/{remaining}"
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+  },
+  "globalHeaders": {
+    "Cache-Control": "no-store"
+  },
+  "mimeTypes": {
+    ".json": "text/json"
+  }
+}
