@@ -1,49 +1,65 @@
-name: Deploy Frontend to Azure Static Web Apps
+name: Build and Deploy Frontend to Azure App Service
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
+  workflow_dispatch:
+
+env:
+  ACR_NAME: optimumpoolacr
+  ACR_LOGIN_SERVER: optimumpoolacr.azurecr.io
+  APP_SERVICE_NAME: optimumpool-ui
+  RESOURCE_GROUP: dev-environment-rg
+  IMAGE_NAME: optimumpoolacr.azurecr.io/frontend
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy Angular App
+    name: Build Docker Image and Deploy
 
     steps:
-      - name: Checkout repository
+
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v3
         with:
-          node-version: '24'
-          cache: 'npm'
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Angular (production)
-        run: npm run build -- --configuration production
-
-      - name: Verify build output and config
+      - name: Build Docker image
         run: |
-          echo "Build output contents:"
-          ls -la dist/optimumpool-ui/browser/
-          echo ""
-          echo "Checking staticwebapp.config.json:"
-          cat dist/optimumpool-ui/browser/staticwebapp.config.json || echo "CONFIG NOT FOUND IN DIST"
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ github.run_number }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            .
+          echo "Built image: ${{ env.IMAGE_NAME }}:${{ github.run_number }}"
 
-      - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
+      - name: Push image to ACR
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:${{ github.run_number }}
+          docker push ${{ env.IMAGE_NAME }}:latest
+          echo "Pushed to ACR successfully"
+
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "dist/optimumpool-ui/browser"
-          output_location: ""  
-          skip_app_build: true
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to App Service
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --docker-custom-image-name ${{ env.IMAGE_NAME }}:${{ github.run_number }}
+
+          # Restart to pull new image immediately
+          az webapp restart \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+
+          echo "Deployed image: ${{ env.IMAGE_NAME }}:${{ github.run_number }}"
+          echo "App URL: https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net"
