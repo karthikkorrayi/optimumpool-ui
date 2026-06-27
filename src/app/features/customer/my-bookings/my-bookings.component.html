@@ -20,6 +20,8 @@
       </span>
     </div>
 
+    <div class="person-card"><strong>Owner details</strong><span>{{ b.offerObject?.car_owner?.name || b.offerObject?.car_owner?.username || b.owner?.name || 'Owner' }}</span><span>Phone: {{ b.offerObject?.car_owner?.contact || b.offerObject?.car_owner?.phone || b.owner?.phone || 'Not provided' }}</span><span>Email: {{ b.offerObject?.car_owner?.email || b.owner?.email || 'Not provided' }}</span></div>
+
     <div class="booking-details">
       <div class="detail-row">
         <span class="label">Seats booked</span>
@@ -61,6 +63,8 @@
     <div *ngIf="messages[b.booking_id]"  class="alert success">{{ messages[b.booking_id] }}</div>
     <div *ngIf="invErrors[b.booking_id]" class="alert error">{{ invErrors[b.booking_id] }}</div>
 
+    <div class="button-row"><button class="btn-outline" type="button">Contact owner</button><button class="btn-reject" type="button" *ngIf="b.bookingStatus === 'PENDING'">Cancel booking</button><a href="javascript:void(0)" class="btn-outline">View booking details</a></div>
+
     <div *ngIf="b.bookingStatus === 'ACCEPTED'">
 
       <div *ngIf="!invoices[b.booking_id]">
@@ -86,4 +90,3 @@
       </div>
     </div>
   </div>
-</div>

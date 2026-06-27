@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -12,9 +12,10 @@ import { OfferService } from '../../../core/services/offer.service';
   imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './search-rides.component.html',
 })
-export class SearchRidesComponent {
+export class SearchRidesComponent implements OnInit {
   from = '';
   to = '';
+  date = '';
   rides: any[] = [];
   searched = false;
   loading = false;
@@ -32,6 +33,10 @@ export class SearchRidesComponent {
     private cdr: ChangeDetectorRef,
   ) {}
 
+  ngOnInit() {
+    this.loadAllRides();
+  }
+
   private normalizedRoute() {
     return {
       from: this.from.trim(),
@@ -39,11 +44,46 @@ export class SearchRidesComponent {
     };
   }
 
+
+  loadAllRides() {
+    this.loading = true;
+    this.error = '';
+    this.searched = false;
+    this.bookingService
+      .getAllRides()
+      .pipe(
+        timeout(10000),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => (this.rides = data || []),
+        error: (err) => {
+          this.error =
+            err?.status === 401
+              ? 'Session expired. Please login again.'
+              : 'Could not load available rides. Confirm BookRide is running.';
+        },
+      });
+  }
+
+  clearFilters() {
+    this.from = '';
+    this.to = '';
+    this.date = '';
+    this.bookingRideId = '';
+    this.bookMessage = '';
+    this.bookError = '';
+    this.loadAllRides();
+  }
+
   search() {
     const route = this.normalizedRoute();
 
-    if (!route.from || !route.to) {
-      this.error = 'Please enter both From and To cities.';
+    if ((route.from && !route.to) || (!route.from && route.to)) {
+      this.error = 'Enter both From and To cities, or clear both to browse all rides.';
       return;
     }
 
@@ -65,7 +105,12 @@ export class SearchRidesComponent {
           console.warn('OfferRide refresh failed; searching BookRide directly:', syncError);
           return of([]);
         }),
-        switchMap(() => this.bookingService.filterRides(route.from, route.to).pipe(timeout(10000))),
+        switchMap(() =>
+          (route.from && route.to
+            ? this.bookingService.filterRides(route.from, route.to)
+            : this.bookingService.getAllRides()
+          ).pipe(timeout(10000)),
+        ),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();
@@ -73,7 +118,7 @@ export class SearchRidesComponent {
       )
       .subscribe({
         next: (data) => {
-          this.rides = data;
+          this.rides = this.date ? data.filter((ride) => ride.date === this.date) : data;
           this.searched = true;
         },
         error: (err) => {
@@ -104,7 +149,7 @@ export class SearchRidesComponent {
       .bookRide(rideId, this.seatsWanted, route.from, route.to)
       .pipe(
         switchMap((res: any) =>
-          this.bookingService.filterRides(route.from, route.to).pipe(
+          (route.from && route.to ? this.bookingService.filterRides(route.from, route.to) : this.bookingService.getAllRides()).pipe(
             timeout(10000),
             catchError((refreshError) => {
               console.warn('Booking succeeded, but ride refresh failed:', refreshError);

@@ -1,0 +1,13 @@
+<div class="modal-backdrop" (click)="close.emit()"></div>
+<section class="profile-modal card compact-profile" role="dialog" aria-modal="true" aria-label="Profile details">
+  <button class="modal-close" type="button" (click)="close.emit()">×</button>
+  <div class="profile-summary">
+    <div class="avatar large">{{ displayName.charAt(0) | uppercase }}</div>
+    <div>
+      <h2>{{ displayName }}</h2>
+      <span class="role-badge">{{ role | titlecase }}</span>
+    </div>
+  </div>
+
+  <div class="detail-row"><span class="label">Phone</span><span>{{ profile?.phone || profile?.contact || 'Not provided' }}</span></div>
+</section>

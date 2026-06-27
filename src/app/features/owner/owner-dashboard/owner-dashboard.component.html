@@ -6,7 +6,6 @@
         Welcome, <strong>{{ profile.username }}</strong> · 📞 {{ profile.phone }}
       </p>
     </div>
-    <button class="btn-outline" (click)="authService.logout()">Logout</button>
   </div>
 
   <div class="card-grid">
@@ -20,6 +19,11 @@
       <div class="menu-icon">📋</div>
       <h3>Booking Requests</h3>
       <p>View, accept or reject customer booking requests</p>
+    </a>
+    <a routerLink="/owner/history" class="menu-card">
+      <div class="menu-icon">🕘</div>
+      <h3>History</h3>
+      <p>Review past rides, bookings and payments</p>
     </a>
   </div>
 </div>
