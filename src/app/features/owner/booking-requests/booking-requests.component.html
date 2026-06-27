@@ -14,11 +14,13 @@
 
   <div *ngFor="let b of bookings" class="booking-card">
     <div class="booking-header">
-      <span class="customer-name">{{ b.customerName }}</span>
+      <span class="customer-name">{{ b.customerName || b.customer?.name || b.customer?.username || b.customerObject?.username }}</span>
       <span class="status-badge status-{{ b.bookingStatus?.toLowerCase() }}">
         {{ b.bookingStatus }}
       </span>
     </div>
+
+    <div class="person-card"><strong>Customer details</strong><span>Phone: {{ b.customer?.phone || b.customerObject?.phone || b.customerPhone || 'Not provided' }}</span><span>Email: {{ b.customer?.email || b.customerObject?.email || b.customerEmail || 'Not provided' }}</span><a href="javascript:void(0)">View customer profile</a></div>
 
     <div class="booking-details">
       <div class="detail-row">
@@ -37,7 +39,7 @@
         <span class="label">Date</span>
         <span>{{ b.offerObject?.date }}</span>
       </div>
-    </div>
+    <div class="detail-row"><span class="label">Price per seat</span><span>₹{{ b.offerObject?.charge_per_km }}/km</span></div><div class="detail-row"><span class="label">Total amount</span><span>₹{{ b.distance * b.no_seat_want * b.offerObject?.charge_per_km }}</span></div></div>
 
     <div class="booking-actions" *ngIf="b.bookingStatus === 'PENDING'">
       <button class="btn-accept" (click)="accept(b.booking_id)">✓ Accept</button>

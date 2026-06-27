@@ -1,0 +1,12 @@
+<header *ngIf="showNav" class="app-header clean-header">
+  <div class="brand" routerLink="/">🚘 <strong>OptimumPool</strong></div>
+
+  <section class="header-profile">
+    <button class="profile-button" type="button" (click)="profileOpen = true" aria-label="Open profile summary">
+      <span class="avatar">{{ displayName.charAt(0) | uppercase }}</span>
+      <span><strong>{{ displayName }}</strong><small>{{ role | titlecase }}</small></span>
+    </button>
+    <button class="btn-reject" type="button" (click)="logout()">Logout</button>
+  </section>
+</header>
+<app-profile-modal *ngIf="profileOpen" [profile]="profile" [role]="role" (close)="profileOpen = false"></app-profile-modal>

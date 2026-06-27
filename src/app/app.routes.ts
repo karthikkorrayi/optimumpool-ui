@@ -9,6 +9,7 @@ import { BookingRequestsComponent }   from './features/owner/booking-requests/bo
 import { CustomerDashboardComponent } from './features/customer/customer-dashboard/customer-dashboard.component';
 import { SearchRidesComponent }       from './features/customer/search-rides/search-rides.component';
 import { MyBookingsComponent }        from './features/customer/my-bookings/my-bookings.component';
+import { HistoryComponent }           from './features/history/history.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -18,10 +19,12 @@ export const routes: Routes = [
   { path: 'owner/dashboard',        component: OwnerDashboardComponent,    canActivate: [authGuard] },
   { path: 'owner/create-ride',      component: CreateRideComponent,        canActivate: [authGuard] },
   { path: 'owner/booking-requests', component: BookingRequestsComponent,   canActivate: [authGuard] },
+  { path: 'owner/history',          component: HistoryComponent,           canActivate: [authGuard] },
 
   { path: 'customer/dashboard',     component: CustomerDashboardComponent, canActivate: [authGuard] },
   { path: 'customer/search',        component: SearchRidesComponent,       canActivate: [authGuard] },
   { path: 'customer/my-bookings',   component: MyBookingsComponent,        canActivate: [authGuard] },
+  { path: 'customer/history',       component: HistoryComponent,           canActivate: [authGuard] },
 
   { path: '**', redirectTo: 'login' }
 ];

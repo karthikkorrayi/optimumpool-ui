@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -7,6 +8,8 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
 
   private base = environment.authApi;
+  private loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
+  loggedIn$ = this.loggedInSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -21,15 +24,19 @@ export class AuthService {
   saveSession(token: string, role: string) {
     localStorage.setItem('token', token);
     localStorage.setItem('role',  role);
+    this.loggedInSubject.next(true);
   }
 
   logout() {
     localStorage.clear();
+    this.loggedInSubject.next(false);
     this.router.navigate(['/login']);
   }
 
   getRole(): string     { return localStorage.getItem('role')  || ''; }
-  isLoggedIn(): boolean { return !!localStorage.getItem('token'); }
+  isLoggedIn(): boolean { return this.hasToken(); }
+
+  private hasToken(): boolean { return !!localStorage.getItem('token'); }
 
   getProfile() {
     return this.http.get<any>(`${this.base}/profile`);

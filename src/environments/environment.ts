@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  authApi:    'http://localhost:8020',   // Auth service
-  offerApi:   'http://localhost:8086',   // OfferRide service
-  bookingApi: 'http://localhost:8084'    // BookRide service
+  authApi:    'http://optimumpool-app.southindia.azurecontainer.io:8020',
+  offerApi:   'http://optimumpool-app.southindia.azurecontainer.io:8086',
+  bookingApi: 'http://optimumpool-app.southindia.azurecontainer.io:8084'
 };
